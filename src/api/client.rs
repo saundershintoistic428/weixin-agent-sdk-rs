@@ -253,14 +253,12 @@ mod tests {
 
     #[test]
     fn random_wechat_uin_format() {
-        let uin = random_wechat_uin();
-        // Should be valid base64
         use base64::Engine;
+        let uin = random_wechat_uin();
         let decoded = base64::engine::general_purpose::STANDARD
             .decode(&uin)
             .unwrap();
         let s = std::str::from_utf8(&decoded).unwrap();
-        // Should be a numeric string (u32 serialized)
         assert!(s.parse::<u32>().is_ok());
     }
 }

@@ -109,3 +109,28 @@ impl<'a> QrLoginApi<'a> {
         })
     }
 }
+
+/// Standalone QR login API that owns its HTTP client.
+/// Use this when you need QR login before creating a full [`crate::WeixinClient`].
+pub struct StandaloneQrLogin {
+    api: HttpApiClient,
+}
+
+impl StandaloneQrLogin {
+    /// Create from a [`crate::WeixinConfig`].
+    pub fn new(config: &crate::config::WeixinConfig) -> Self {
+        Self {
+            api: HttpApiClient::new(config),
+        }
+    }
+
+    /// Fetch a new QR code.
+    pub async fn start(&self, bot_type: Option<&str>) -> Result<QrLoginSession> {
+        QrLoginApi::new(&self.api).start(bot_type).await
+    }
+
+    /// Poll the login status.
+    pub async fn poll_status(&self, session: &QrLoginSession) -> Result<LoginStatus> {
+        QrLoginApi::new(&self.api).poll_status(session).await
+    }
+}

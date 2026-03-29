@@ -1,20 +1,27 @@
-//! Echo bot example — demonstrates SDK usage with sync_buf persistence.
+//! Echo bot — replies with the same text it receives.
 //!
-//! Usage: `WEIXIN_TOKEN=xxx cargo run --example echo_bot`
+//! ```bash
+//! cargo run --example echo_bot -- --state-dir /path/to/state
+//! ```
+
+mod common;
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
+use clap::Parser;
 use weixin_agent::{MessageContext, MessageHandler, Result, WeixinClient, WeixinConfig};
 
-struct EchoBotHandler {
+struct EchoBot {
     state_dir: PathBuf,
+    client: Option<Arc<WeixinClient>>,
 }
 
 #[async_trait::async_trait]
-impl MessageHandler for EchoBotHandler {
+impl MessageHandler for EchoBot {
     async fn on_message(&self, ctx: &MessageContext) -> Result<()> {
         if let Some(text) = &ctx.body {
-            tracing::info!(from = %ctx.from, text = %text, "received message");
+            tracing::info!(from = %ctx.from, text = %text, "received");
             ctx.reply_text(text).await?;
         }
         Ok(())
@@ -23,17 +30,16 @@ impl MessageHandler for EchoBotHandler {
     async fn on_sync_buf_updated(&self, sync_buf: &str) -> Result<()> {
         let path = self.state_dir.join("sync_buf.json");
         tokio::fs::write(&path, sync_buf).await?;
-        tracing::debug!(path = ?path, "sync_buf persisted");
-        Ok(())
-    }
-
-    async fn on_start(&self) -> Result<()> {
-        tracing::info!("echo bot starting");
         Ok(())
     }
 
     async fn on_shutdown(&self) -> Result<()> {
-        tracing::info!("echo bot shutting down");
+        if let Some(c) = &self.client {
+            let tokens = c.context_tokens().export_all();
+            if let Err(e) = common::save_context_tokens(&self.state_dir, &tokens).await {
+                tracing::error!(error = %e, "failed to save context tokens");
+            }
+        }
         Ok(())
     }
 }
@@ -46,23 +52,29 @@ async fn main() -> anyhow::Result<()> {
         )
         .init();
 
-    let token = std::env::var("WEIXIN_TOKEN").expect("WEIXIN_TOKEN env var required");
-    let state_dir =
-        PathBuf::from(std::env::var("STATE_DIR").unwrap_or_else(|_| "/tmp/echo_bot".into()));
-    tokio::fs::create_dir_all(&state_dir).await?;
+    let args = common::BotArgs::parse();
+    tokio::fs::create_dir_all(&args.state_dir).await?;
 
-    // Load previous sync_buf if available
-    let sync_buf_path = state_dir.join("sync_buf.json");
-    let initial_sync_buf = tokio::fs::read_to_string(&sync_buf_path).await.ok();
+    let token = common::resolve_token(&args).await?;
+    let sync_buf = common::load_sync_buf(&args.state_dir).await;
+    let ctx_tokens = common::load_context_tokens(&args.state_dir).await;
 
-    let config = WeixinConfig::builder().token(token).build()?;
+    let mut config_builder = WeixinConfig::builder().token(&token);
+    if let Some(url) = &args.base_url {
+        config_builder = config_builder.base_url(url);
+    }
+    let config = config_builder.build()?;
 
     let client = WeixinClient::builder(config)
-        .on_message(EchoBotHandler {
-            state_dir: state_dir.clone(),
+        .on_message(EchoBot {
+            state_dir: args.state_dir.clone(),
+            client: None,
         })
         .build()?;
 
-    client.start(initial_sync_buf).await?;
+    client.context_tokens().import(ctx_tokens);
+
+    tracing::info!(state_dir = %args.state_dir.display(), "echo bot starting");
+    client.start(sync_buf).await?;
     Ok(())
 }

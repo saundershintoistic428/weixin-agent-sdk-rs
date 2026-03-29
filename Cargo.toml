@@ -28,6 +28,8 @@ urlencoding = "2"
 
 [dev-dependencies]
 anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+qr2term = "0.3"
 tokio = { version = "1", features = ["full", "test-util"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tempfile = "3"

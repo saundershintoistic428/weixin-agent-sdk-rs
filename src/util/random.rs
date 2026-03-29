@@ -64,8 +64,11 @@ mod tests {
     fn temp_file_name_format() {
         let name = temp_file_name("upload", ".png");
         assert!(name.starts_with("upload-"));
-        assert!(name.ends_with(".png"));
-        // Should contain timestamp-hex between prefix and extension
+        assert!(
+            std::path::Path::new(&name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+        );
         let mid = &name["upload-".len()..name.len() - ".png".len()];
         let parts: Vec<&str> = mid.splitn(2, '-').collect();
         assert_eq!(parts.len(), 2);
