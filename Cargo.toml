@@ -3,8 +3,14 @@ name = "weixin-agent"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85.0"
-description = "Pure protocol SDK for Weixin iLink Bot API"
+description = "Pure protocol SDK for Weixin iLink Bot API — iLink AI Bot protocol, not coupled with OpenClaw"
 license = "MIT"
+repository = "https://github.com/spensercai/weixin-agent-sdk-rs"
+homepage = "https://github.com/spensercai/weixin-agent-sdk-rs"
+documentation = "https://docs.rs/weixin-agent"
+readme = "README.md"
+keywords = ["weixin", "wechat", "bot", "ilink", "agent"]
+categories = ["api-bindings", "asynchronous"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

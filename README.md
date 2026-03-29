@@ -1,5 +1,7 @@
 # Weixin Agent SDK for Rust
 
+[![Crates.io](https://img.shields.io/crates/v/weixin-agent.svg)](https://crates.io/crates/weixin-agent)
+[![docs.rs](https://docs.rs/weixin-agent/badge.svg)](https://docs.rs/weixin-agent)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-%3E%3D1.85.0-orange.svg)](https://www.rust-lang.org)
 
@@ -119,6 +121,30 @@ impl MessageContext {
 ```
 
 ### QR 码登录
+
+在创建 `WeixinClient` 之前，可通过 `StandaloneQrLogin` 独立完成 QR 码登录获取 token：
+
+```rust
+use weixin_agent::{StandaloneQrLogin, WeixinConfig, LoginStatus};
+
+let config = WeixinConfig::builder().token("").build()?;
+let qr = StandaloneQrLogin::new(&config);
+let session = qr.start(None).await?;
+println!("请扫描二维码: {}", session.qrcode_img_content);
+
+loop {
+    match qr.poll_status(&session).await? {
+        LoginStatus::Confirmed { bot_token, base_url, .. } => {
+            // 保存 token，用 token 创建 WeixinClient
+            break;
+        }
+        LoginStatus::Expired => { /* 重新获取 QR 码 */ }
+        _ => tokio::time::sleep(Duration::from_secs(2)).await,
+    }
+}
+```
+
+已有 `WeixinClient` 实例时也可通过 `client.qr_login()` 获取 QR 登录 API：
 
 ```rust
 let qr = client.qr_login();
