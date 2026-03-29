@@ -1,0 +1,23 @@
+# Build artifacts
+/target/
+
+# IDE
+.idea/
+.vscode/
+.kiro/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Secrets & credentials
+secrets.txt
+examples/secret.toml
+
+# Development-only directories
+/dev_docs/
+/tmps/
+
+# Test artifacts
+*.log
+refs/
